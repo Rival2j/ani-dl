@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 # argumentos
 anime=$1
