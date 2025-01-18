@@ -1,0 +1,27 @@
+#!/bin/zsh
+
+# argumentos
+anime=$1
+capitulo=$2
+descarga=$3
+
+# Descarga de la pagina web completa (se guarda en /tmp)
+envio="https://jkanime.net/$anime/$capitulo/"
+wget -p $envio -P /tmp
+
+# Obtener la url del video
+url="$(grep -A 1 video /tmp/jkanime.net/um.php* | grep url | cut -d"'" -f2 | head -n1)"
+
+# Eliminar carpeta de descarga
+rm -rf /tmp/jkanime.net
+
+if [[ $descarga == 0 ]]; then
+# Reproducir la url obtenida
+	mpv "$url"
+fi
+if [[ $descarga != 0 ]]; then
+  # Descargar
+	yt-dlp -o "$anime-$capitulo.%(ext)s" "$url"
+fi
+
+
