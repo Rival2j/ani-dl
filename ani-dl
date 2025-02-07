@@ -1,16 +1,21 @@
 #!/bin/bash
 
 # argumentos
-anime=$1
-capitulo=$2
-descarga=$3
+echo "Nombre del anime: (Usa "-" para los espacios"
+read anime
+
+echo "Número de capítulo"
+read capitulo
+
+echo "Descarga: 0 = No (Reproducir), enter = Si (Descargar)
+read descarga
 
 # Descarga de la pagina web completa (se guarda en /tmp)
 envio="https://jkanime.net/$anime/$capitulo/"
-wget -p $envio -P /tmp
+wget --user-agent='Mozilla' -p $envio -P /tmp
 
 # Obtener la url del video
-url="$(grep -A 1 video /tmp/jkanime.net/um.php* | grep url | cut -d"'" -f2 | head -n1)"
+url="$(grep -A 1 video /tmp/jkanime.net/jk.php* | grep url | cut -d"'" -f2 | head -n1)"
 
 # Eliminar carpeta de descarga
 rm -rf /tmp/jkanime.net
@@ -21,7 +26,7 @@ if [[ $descarga == 0 ]]; then
 fi
 if [[ $descarga != 0 ]]; then
   # Descargar
-	yt-dlp -o "$anime-$capitulo.%(ext)s" "$url"
+	yt-dlp -o "$anime-$capitulo.%(ext)s" "$url" -P ~/Videos/$anime
 fi
 
 
