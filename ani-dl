@@ -1,29 +1,68 @@
-#! /bin/bash
+#!/bin/zsh
+cat <<"EOF"
+            _            ____
+ ___ ____  (_) ____  ___/ / /
+/ _ `/ _ \/ / /___/ / _  / / 
+\_,_/_//_/_/        \_,_/_/  
+                             
 
-# argumentos
-echo "Nombre del anime: (Usa "-" para los espacios)"
-read anime
+EOF
 
-echo "Número de capítulo"
-read capitulo
+# Ruta del archivo del historial
+historial="$HOME/bash/.anime_historial"
 
-echo "Descarga: 0 = Si (Descargar), enter = No (Reproducir)"
+# Obtener el siguiente capitulo 
+obtener_capitulo() {
+  local anime=$1
+  local capitulo=$2
+  siguiente_capitulo=$((capitulo + 1))
+  echo $siguiente_capitulo
+}
+
+# Verificar si existe historial
+if [[ -f $historial ]]; then 
+  echo "Historial encontrado!"
+  source $historial
+  echo "Ultimo anime visto: $anime, Capitulo $capitulo"
+  echo "Quieres ver el capitulo siguiente? (S/N)"
+  read respuesta
+  
+  if [[ $respuesta == "S" || $respuesta == "s" ]]; then
+    capitulo=$(obtener_capitulo $anime $capitulo)
+  else
+  	echo "Deseas ver otro anime o capitulo?"
+    fi
+  fi
+
+# Preguntar anime y Capitulo si no hay historial 
+if [[ $respuesta == "n" || $respuesta == "N" ]]; then
+  echo "Nombre del anime: (usa "-" para los espacios)"
+  read anime	
+  echo "Número de capítulo:"
+  read capitulo
+fi
+echo "Descargar? (S/N)"
 read descarga
+
+# Guardar en el historial el anime y capitulo
+echo "anime='$anime'" > $historial
+echo "capitulo=$capitulo" >> $historial
 
 # Descarga de la pagina web completa (se guarda en /tmp)
 envio="https://jkanime.net/$anime/$capitulo/"
-wget --user-agent='Mozilla' -p $envio -P /tmp -4
+wget --user-agent="Mozilla" -p $envio -P /tmp -4
 
 # Obtener la url del video
-url="$(grep -A 1 video /tmp/jkanime.net/jk.php* | grep url | cut -d"'" -f2 | head -n1)"
+url="$(grep -A 1 video /tmp/jkanime.net/jkplayer/um?* | grep url | cut -d"'" -f2 | head -n1)"
+echo "Url: $url"
 
 # Eliminar carpeta de descarga
 rm -rf /tmp/jkanime.net
 
-if [[ $descarga != 0 ]]; then
-# Reproducir la url obtenida
+if [[ $descarga == "s" || $descarga == "S" ]]; then
+  # Descargar
+	yt-dlp -o "$anime-$capitulo.mp4" "$url" -P ~/Videos/$anime
+else     	
+  # Reproducir la url obtenida
 	mpv "$url"
-	else
-# Descargar
-	yt-dlp -o "$anime-$capitulo.%(ext)s" "$url" -P ~/Videos/$anime
 fi
