@@ -3,3 +3,6 @@ y de otro proyecto tambien basado en el mismo video de nombre [guts](https://git
 
 para usar descarga el script y ejecuta el siguiente comando:  
 ```chmod +x ani-dl```
+Adicionalmente 
+```~ mkdir bash```
+```~ touch bash/.anime_historial```
