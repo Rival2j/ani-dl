@@ -2,7 +2,7 @@ Este Script esta basado en el video de youtube "[ver anime anime desde terminal]
 y de otro proyecto tambien basado en el mismo video de nombre [guts](https://github.com/danifreflow/Guts)
 
 para usar descarga el script y ejecuta el siguiente comando:  
-```chmod +x ani-dl```
-Adicionalmente 
-```~ mkdir bash```
+```chmod +x ani-dl```  
+Adicionalmente   
+```~ mkdir bash```  
 ```~ touch bash/.anime_historial```
