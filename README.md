@@ -1,8 +1,16 @@
-Este Script esta basado en el video de youtube "[ver anime anime desde terminal](https://www.youtube.com/watch?v=IHDqzGno4Y4) " de [Houman ](https://houmanr.xyz/)
-y de otro proyecto tambien basado en el mismo video de nombre [guts](https://github.com/danifreflow/Guts)
+# ani-dl
 
-para usar descarga el script y ejecuta el siguiente comando:  
-```chmod +x ani-dl```  
-Adicionalmente   
-```~ mkdir bash```  
-```~ touch bash/.anime_historial```
+Este script está basado en el video de YouTube “[Ver anime desde terminal](https://www.youtube.com/watch?v=IHDqzGno4Y4)” de [Houman](https://houmanr.xyz/)  
+y en otro proyecto también basado en el mismo video llamado [Guts](https://github.com/danifreflow/Guts).
+
+## Cómo usar
+
+1. Descarga el script y dale permisos de ejecución:
+   ```bash
+   chmod +x ani-dl
+2. Crea la carpeta y el archivo del historial:
+    ```bash
+    mkdir -p bash
+    ```
+    ```bash
+    touch bash/.anime_historial
