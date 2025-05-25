@@ -14,3 +14,6 @@ y en otro proyecto también basado en el mismo video llamado [Guts](https://gith
     ```
     ```bash
     touch bash/.anime_historial
+# Ejemplo
+https://github.com/user-attachments/assets/d2cea1e8-b2f5-4f56-8eb4-8296d470c0a1
+
