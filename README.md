@@ -3,6 +3,12 @@
 Este script está basado en el video de YouTube “[Ver anime desde terminal](https://www.youtube.com/watch?v=IHDqzGno4Y4)” de [Houman](https://houmanr.xyz/)  
 y en otro proyecto también basado en el mismo video llamado [Guts](https://github.com/danifreflow/Guts).
 
+# Dependencias  
+El script tiene las siguientes dependencias 
+- grep
+- wget
+- mpv
+- yt-dlp  
 ## Cómo usar
 
 1. Descarga el script y dale permisos de ejecución:
