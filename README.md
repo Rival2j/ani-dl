@@ -9,7 +9,7 @@ El script tiene las siguientes dependencias
 - wget
 - mpv
 - yt-dlp  
-## Cómo usar
+## Instalación
 
 1. Descarga el script y dale permisos de ejecución:
    ```bash
