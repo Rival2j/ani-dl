@@ -61,7 +61,7 @@ rm -rf /tmp/jkanime.net
 
 if [[ $descarga == "s" || $descarga == "S" ]]; then
   # Descargar
-	yt-dlp -o "$anime-$capitulo.mp4" "$url" -P ~/Videos/$anime
+	yt-dlp -o "$anime-$capitulo.mp4" --downloader aria2c "$url" -P ~/Videos/$anime
 else     	
   # Reproducir la url obtenida
 	mpv "$url"
