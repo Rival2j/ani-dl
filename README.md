@@ -6,9 +6,11 @@ y en otro proyecto también basado en el mismo video llamado [Guts](https://gith
 # Dependencias  
 El script tiene las siguientes dependencias 
 - grep
+- cut
 - wget
 - mpv
-- yt-dlp  
+- yt-dlp
+- aria2    
 ## Instalación
 
 1. Descarga el script y dale permisos de ejecución:
