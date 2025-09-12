@@ -56,9 +56,6 @@ wget --user-agent="Mozilla" -p $envio -P /tmp -4
 url="$(grep -A 1 video /tmp/jkanime.net/jkplayer/um?* | grep url | cut -d"'" -f2 | head -n1)"
 echo "Url: $url"
 
-# Eliminar carpeta de descarga
-rm -rf /tmp/jkanime.net
-
 if [[ $descarga == "s" || $descarga == "S" ]]; then
   # Descargar
 	yt-dlp -o "$anime-$capitulo.mp4" --downloader aria2c "$url" -P ~/Videos/$anime
@@ -66,3 +63,6 @@ else
   # Reproducir la url obtenida
 	mpv "$url"
 fi
+
+# Eliminar carpeta de descarga
+rm -rf /tmp/jkanime.net
