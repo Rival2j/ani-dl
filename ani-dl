@@ -19,17 +19,17 @@ if [[ -f "$historial" && -s "$historial" ]]; then
   mapfile -t entradas < "$historial" # Lee lineas en arry
 
   for i in "${!entradas[@]}"; do
-  	IFS':' read -r nombre cap <<< "${entradas[$i]}"
+  	IFS=':' read -r nombre cap <<< "${entradas[$i]}"
 	echo "$((i+1))) $nombre (cap.$cap)"
   done
-  echo " $((${entradas[@]}+1))) Ver otro anime"
+  echo " $((${#entradas[@]}+1))) Ver otro anime"
   echo ""
   echo -n "Selecciona una opcion: "
   read selection
 
-  if [["$selection" -ge 1 && "$selection" -le "${#entradas[@]}" ]] then
+  if [[ "$selection" -ge 1 && "$selection" -le "${#entradas[@]}" ]]; then
     # Usuario eligió un anime del historial
-        IFS=':' read -r anime capitulo <<< "${entradas[$((seleccion-1))]}"
+        IFS=':' read -r anime capitulo <<< "${entradas[$((selection-1))]}"
         siguiente=$((capitulo + 1))
         echo "Último capítulo visto de '$anime': $capitulo"
         echo -n "¿Ver capítulo $siguiente? (S/N): "
