@@ -10,43 +10,68 @@ EOF
 
 # Ruta del archivo del historial
 historial="$HOME/bash/.anime_historial"
+anime=""
+capitulo=""
 
-# Obtener el siguiente capitulo 
-obtener_capitulo() {
-  local anime=$1
-  local capitulo=$2
-  siguiente_capitulo=$((capitulo + 1))
-  echo $siguiente_capitulo
-}
+# Cargar historial
+if [[ -f "$historial" && -s "$historial" ]]; then
+  echo "=== Historial ==="
+  mapfile -t entradas < "$historial" # Lee lineas en arry
 
-# Verificar si existe historial
-if [[ -f $historial ]]; then 
-  echo "Historial encontrado!"
-  source $historial
-  echo "Ultimo anime visto: $anime, Capitulo $capitulo"
-  echo "Quieres ver el capitulo siguiente? (S/N)"
-  read respuesta
-  
-  if [[ $respuesta == "S" || $respuesta == "s" ]]; then
-    capitulo=$(obtener_capitulo $anime $capitulo)
-  else
-  	echo "Deseas ver otro anime o capitulo?"
+  for i in "${!entradas[@]}"; do
+  	IFS=':' read -r nombre cap <<< "${entradas[$i]}"
+	echo "$((i+1))) $nombre (cap.$cap)"
+  done
+  echo " $((${#entradas[@]}+1))) Ver otro anime"
+  echo ""
+  echo -n "Selecciona una opcion: "
+  read selection
+
+  if [[ "$selection" -ge 1 && "$selection" -le "${#entradas[@]}" ]]; then
+    # Usuario eligió un anime del historial
+        IFS=':' read -r anime capitulo <<< "${entradas[$((selection-1))]}"
+        siguiente=$((capitulo + 1))
+        echo "Último capítulo visto de '$anime': $capitulo"
+        echo -n "¿Ver capítulo $siguiente? (S/N): "
+        read resp
+        if [[ "$resp" == "S" || "$resp" == "s" ]]; then
+            capitulo=$siguiente
+        else
+            echo -n "Número de capítulo: "
+            read capitulo
+        fi
+    else
+        # Ver otro anime nuevo
+        echo -n "Nombre del anime (usa '-' para espacios): "
+        read anime
+        echo -n "Número de capítulo: "
+        read capitulo
     fi
-  fi
-
-# Preguntar anime y Capitulo si no hay historial 
-if [[ $respuesta == "n" || $respuesta == "N" ]]; then
-  echo "Nombre del anime: (usa "-" para los espacios)"
-  read anime	
-  echo "Número de capítulo:"
-  read capitulo
+else
+    # Sin historial
+    echo -n "Nombre del anime (usa '-' para espacios): "
+    read anime
+    echo -n "Número de capítulo: "
+    read capitulo
 fi
-echo "Descargar? (S/N)"
+
+echo -n "¿Descargar? (S/N): "
 read descarga
 
-# Guardar en el historial el anime y capitulo
-echo "anime='$anime'" > $historial
-echo "capitulo=$capitulo" >> $historial
+# ---------- Guardar/actualizar historial ----------
+nueva_entrada="$anime:$capitulo"
+
+if [[ -f "$historial" ]]; then
+    # Si el anime ya existe, actualizar su línea; si no, agregar
+    if grep -q "^$anime:" "$historial"; then
+        sed -i "s|^$anime:.*|$nueva_entrada|" "$historial"
+    else
+        echo "$nueva_entrada" >> "$historial"
+    fi
+else
+    mkdir -p "$(dirname "$historial")"
+    echo "$nueva_entrada" > "$historial"
+fi
 
 # Descarga de la pagina web completa (se guarda en /tmp)
 envio="https://jkanime.net/$anime/$capitulo/"
