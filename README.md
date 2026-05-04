@@ -23,5 +23,4 @@ El script tiene las siguientes dependencias
     ```bash
     touch bash/.anime_historial
 # Ejemplo
-https://github.com/user-attachments/assets/d2cea1e8-b2f5-4f56-8eb4-8296d470c0a1
-
+https://github.com/user-attachments/assets/8ad412c9-4701-47aa-ba5a-24d2d233a0d2
