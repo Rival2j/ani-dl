@@ -16,6 +16,7 @@ El script tiene las siguientes dependencias
 1. Descarga el script y dale permisos de ejecución:
    ```bash
    chmod +x ani-dl
+   ```
 2. Crea la carpeta y el archivo del historial:
     ```bash
     mkdir -p bash
