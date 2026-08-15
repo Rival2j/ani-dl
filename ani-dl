@@ -78,16 +78,52 @@ envio="https://jkanime.net/$anime/$capitulo/"
 wget --user-agent="Mozilla" -p $envio -P /tmp -4
 
 # Obtener la url del video
-url="$(grep -A 1 video /tmp/jkanime.net/jkplayer/um?* | grep url | cut -d"'" -f2 | head -n1)"
-echo "Url: $url"
+# ---------- Extraer URLs de todos los servidores disponibles ----------
+mapfile -t um_files < <(ls /tmp/jkanime.net/jkplayer/um?e=* 2>/dev/null)
 
-if [[ $descarga == "s" || $descarga == "S" ]]; then
-  # Descargar
-	yt-dlp -o "$anime-$capitulo.mp4" --downloader aria2c "$url" -P ~/Videos/$anime
-else     	
-  # Reproducir la url obtenida
-	mpv "$url"
+urls=()
+for f in "${um_files[@]}"; do
+    u="$(grep -ohP "url:\s*'\K[^']+" "$f" | head -n1)"
+    if [[ -z "$u" ]]; then
+        b64="$(grep -ohP "url:\s*atob\('\K[^']+" "$f" | head -n1)"
+        [[ -n "$b64" ]] && u="$(echo "$b64" | base64 -d)"
+    fi
+    [[ -n "$u" ]] && urls+=("$u")
+done
+
+if [[ ${#urls[@]} -eq 0 ]]; then
+    echo "Error: no se pudo extraer ninguna URL de video."
+    rm -rf /tmp/jkanime.net
+    exit 1
 fi
 
+echo "Servidores encontrados: ${#urls[@]}"
+
+# ---------- Probar cada servidor hasta que uno funcione ----------
+success=0
+for i in "${!urls[@]}"; do
+    u="${urls[$i]}"
+    echo "--- Probando servidor $((i+1))/${#urls[@]} ---"
+    echo "Url: $u"
+    if [[ $descarga == "s" || $descarga == "S" ]]; then
+        if yt-dlp -o "$anime-$capitulo.mp4" -N 16 --hls-prefer-native "$u" -P ~/Videos/"$anime"; then
+            success=1
+            break
+        else
+            echo "Falló el servidor $((i+1)), probando el siguiente..."
+        fi
+    else
+        if mpv "$u"; then
+            success=1
+            break
+        else
+            echo "Falló la reproducción con el servidor $((i+1)), probando el siguiente..."
+        fi
+    fi
+done
+
+if [[ $success -eq 0 ]]; then
+    echo "Error: ningún servidor funcionó."
+fi
 # Eliminar carpeta de descarga
 rm -rf /tmp/jkanime.net

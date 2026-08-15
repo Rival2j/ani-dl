@@ -10,7 +10,7 @@ El script tiene las siguientes dependencias
 - wget
 - mpv
 - yt-dlp
-- aria2    
+
 ## Instalación
 
 1. Descarga el script y dale permisos de ejecución:
