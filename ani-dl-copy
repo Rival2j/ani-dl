@@ -8,20 +8,14 @@ cat <<"EOF"
 
 EOF
 
-# Ruta del archivo del historial
-historial="$HOME/bash/.anime_historial"
-anime=""
-capitulo=""
-
-# ---------- Buscador de anime ----------
-buscar_anime() {
+buscar_anime_completo() {
     local query="$1"
     local html slugs titulos tipos estados i seleccion
 
     html="$(curl -sL -A "Mozilla/5.0" "https://jkanime.net/buscar/${query// /%20}")"
 
     mapfile -t slugs < <(grep -oP '<a\s+href="https://jkanime.net/\K[^/]+(?=/")' <<< "$html" | awk '!seen[$0]++')
-    mapfile -t titulos < <(grep -oP '<h5><a\s+href="[^"]+">\K[^<]+' <<< "$html" | sed 's/&amp;/\&/g')
+    mapfile -t titulos < <(grep -oP '<h5><a\s+href="[^"]+">\K[^<]+' <<< "$html")
     mapfile -t tipos < <(grep -oP '<li class="anime">\K[^<]+' <<< "$html")
     mapfile -t estados < <(grep -oP '<li>\K(Concluido|En emision)(?=</li>)' <<< "$html")
 
@@ -30,7 +24,7 @@ buscar_anime() {
         return 1
     fi
 
-    echo "=== Resultados para '$query' (${#slugs[@]}) ===" >&2
+    echo "=== Resultados completos para '$query' (${#slugs[@]}) ===" >&2
     for i in "${!titulos[@]}"; do
         echo "$((i+1))) ${titulos[$i]} [${tipos[$i]:-?} - ${estados[$i]:-?}]" >&2
     done
@@ -46,22 +40,75 @@ buscar_anime() {
         return 1
     fi
 }
+# Devuelve el JSON crudo de resultados de búsqueda
+buscar_anime_raw() {
+    local query="$1"
+    local cookie_jar main_html token resultado
 
-# ---------- Elegir anime (busca y hace fallback a nombre manual) ----------
-elegir_anime() {
-    local termino resultado
-    echo -n "Buscar anime (palabras clave): "
-    read -r termino
-    resultado="$(buscar_anime "$termino")"
-    if [[ $? -ne 0 || -z "$resultado" ]]; then
-        echo -n "Nombre exacto del anime (usa '-' para espacios): "
-        read -r anime
-    else
-        anime="$resultado"
+    cookie_jar="$(mktemp)"
+    main_html="$(mktemp)"
+
+    curl -s -c "$cookie_jar" -A "Mozilla/5.0" "https://jkanime.net/" -o "$main_html"
+    token="$(grep -oP '(?<=name="csrf-token" content=")[^"]+' "$main_html")"
+
+    if [[ -z "$token" ]]; then
+        rm -f "$cookie_jar" "$main_html"
+        return 1
     fi
-    echo -n "Número de capítulo: "
-    read -r capitulo
+
+    resultado="$(curl -s -b "$cookie_jar" -A "Mozilla/5.0" \
+        -H "Accept: application/json, text/javascript, */*; q=0.01" \
+        -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8" \
+        -H "X-Requested-With: XMLHttpRequest" \
+        -H "Origin: https://jkanime.net" \
+        -H "Referer: https://jkanime.net/" \
+        --data-urlencode "_token=$token" \
+        --data-urlencode "q=$query" \
+        "https://jkanime.net/ajax_search")"
+
+    rm -f "$cookie_jar" "$main_html"
+    printf '%s\n' "$resultado"
 }
+
+
+# Muestra el menú de resultados y devuelve el slug elegido por stdout
+buscar_anime() {
+    local query="$1"
+    local json slugs titulos tipos estados seleccion
+
+    json="$(buscar_anime_raw "$query")"
+
+    if [[ -z "$json" || "$json" == "[]" ]]; then
+        echo "Sin resultados para '$query'." >&2
+        return 1
+    fi
+
+    mapfile -t slugs   < <(grep -oP '"slug":"\K[^"]+' <<< "$json")
+    mapfile -t titulos < <(grep -oP '"title":"\K[^"]+' <<< "$json")
+    mapfile -t tipos   < <(grep -oP '"type":"\K[^"]+' <<< "$json")
+    mapfile -t estados < <(grep -oP '"status":"\K[^"]+' <<< "$json")
+
+    echo "=== Resultados para '$query' ===" >&2
+    for i in "${!titulos[@]}"; do
+        echo "$((i+1))) ${titulos[$i]} [${tipos[$i]} - ${estados[$i]}]" >&2
+    done
+    echo " q) Escribir nombre manualmente" >&2
+
+    echo -n "Selecciona una opción: " >&2
+    read -r seleccion
+
+    if [[ "$seleccion" =~ ^[0-9]+$ ]] && (( seleccion >= 1 && seleccion <= ${#slugs[@]} )); then
+        echo "${slugs[$((seleccion-1))]}"
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Ruta del archivo del historial
+historial="$HOME/bash/.anime_historial"
+anime=""
+capitulo=""
 
 # Cargar historial
 if [[ -f "$historial" && -s "$historial" ]]; then
@@ -91,16 +138,20 @@ if [[ -f "$historial" && -s "$historial" ]]; then
             read capitulo
         fi
     else
-        # Ver otro anime nuevo
-        elegir_anime
-    fi
-else
-    # Sin historial
-    elegir_anime
-fi
+      echo -n "Buscar anime (palabras clave): "
+      read -r termino
+      anime="$(buscar_anime "$termino")"
+	  if [[ $? -ne 0 || -z "$anime" ]]; then
+	    echo -n "Nombre exacto del anime (usa '-' para espacios): "
+	    read -r anime
+	  fi
+      echo -n "Numero capitulo: "
+      read -r capitulo
+  fi
+  fi
 
 echo -n "¿Descargar? (S/N): "
-read -r descarga
+read descarga
 
 # ---------- Guardar/actualizar historial ----------
 nueva_entrada="$anime:$capitulo"
@@ -171,3 +222,4 @@ if [[ $success -eq 0 ]]; then
 fi
 # Eliminar carpeta de descarga
 rm -rf /tmp/jkanime.net
+
